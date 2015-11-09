@@ -1,3 +1,5 @@
+package fr.tungnguyen.taskscheduler;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -29,26 +31,6 @@ public class TaskSchedulerTest {
 
         scheduledExecutorService.shutdown();
     }
-
-    private final class PrinterTask implements Runnable {
-        private final int id;
-        private int count = 0;
-
-        public PrinterTask(int id) {
-            this.id = id;
-        }
-
-        @Override
-        public void run() {
-            System.out.println("PrinterTask " + id + " - Hello world " + count++);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 
     @Test
     public void testScheduleAtFixedRate() throws Exception {
@@ -88,6 +70,17 @@ public class TaskSchedulerTest {
         List<ScheduledFuture> scheduledFutures = new ArrayList<>();
         for (int i = 1; i <= nbrTask; i++) {
             scheduledFutures.add(scheduledExecutorService.scheduleWithFixedDelay(new PrinterTask(i) , 1, 1, SECONDS));
+        }
+
+        waitAndShutdown(scheduledExecutorService);
+    }
+
+    @Test
+    public void testAutoCancelPrinerTask() throws Exception{
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
+        List<ScheduledFuture> scheduledFutures = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            scheduledFutures.add(new AutoCancelPrinterTask(i, 5).scheduleWithFixedDelay(scheduledExecutorService, 1, 1, SECONDS));
         }
 
         waitAndShutdown(scheduledExecutorService);

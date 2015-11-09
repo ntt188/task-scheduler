@@ -5,11 +5,16 @@ import java.util.concurrent.Callable;
 /**
  * Created by tungnguyen on 09/11/2015.
  */
-public class PrinterTask implements Callable<Integer> {
+public class PrinterTask implements Runnable {
+    private final int id;
     private int count = 0;
 
-    public Integer call() throws Exception {
-        System.out.println("Print " + count++);
-        return count;
+    public PrinterTask(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("PrinterTask " + id + " - Hello world " + count++);
     }
 }
