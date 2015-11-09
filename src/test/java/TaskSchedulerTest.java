@@ -30,20 +30,66 @@ public class TaskSchedulerTest {
         scheduledExecutorService.shutdown();
     }
 
+    private final class PrinterTask implements Runnable {
+        private final int id;
+        private int count = 0;
+
+        public PrinterTask(int id) {
+            this.id = id;
+        }
+
+        @Override
+        public void run() {
+            System.out.println("PrinterTask " + id + " - Hello world " + count++);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     @Test
     public void testScheduleAtFixedRate() throws Exception {
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
         List<ScheduledFuture> scheduledFutures = new ArrayList<>();
-        scheduledFutures.add(scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-            private int count = 0;
+        scheduledFutures.add(scheduledExecutorService.scheduleAtFixedRate(new PrinterTask(1) , 1, 1, SECONDS));
 
-            @Override
-            public void run() {
-                System.out.println("ScheduleAtFixedRate - Hello world " + count++);
-            }
-        }, 1, 1, SECONDS));
+        waitAndShutdown(scheduledExecutorService);
+    }
 
+    private void waitAndShutdown(ScheduledExecutorService scheduledExecutorService) throws InterruptedException {
         Thread.sleep(10 * 1000);
         scheduledExecutorService.shutdown();
+    }
+
+    @Test
+    public void testScheduleWithFixedDelay() throws Exception {
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        List<ScheduledFuture> scheduledFutures = new ArrayList<>();
+        scheduledFutures.add(scheduledExecutorService.scheduleWithFixedDelay(new PrinterTask(1) , 1, 1, SECONDS));
+
+        waitAndShutdown(scheduledExecutorService);
+    }
+
+    @Test
+    public void testScheduleWithFixedDelayMultiTaskOneThread() throws Exception {
+        scheduleWithFixedDelay(3, 1);
+    }
+
+    @Test
+    public void testScheduleWithFixedDelayMultiTaskMultiThread() throws Exception {
+        scheduleWithFixedDelay(3, 3);
+    }
+
+    private void scheduleWithFixedDelay(final int nbrTask, final int nbrThread) throws InterruptedException {
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(nbrThread);
+        List<ScheduledFuture> scheduledFutures = new ArrayList<>();
+        for (int i = 1; i <= nbrTask; i++) {
+            scheduledFutures.add(scheduledExecutorService.scheduleWithFixedDelay(new PrinterTask(i) , 1, 1, SECONDS));
+        }
+
+        waitAndShutdown(scheduledExecutorService);
     }
 }
